@@ -1,32 +1,26 @@
 package akitektuo.wizardgame
 
+import akitektuo.wizardgame.game.Game
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.WindowInsets
-import android.view.WindowInsetsController
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        makeFullscreen()
+        hideNavigation()
 
         setContentView(Game(this))
     }
 
-    private fun makeFullscreen() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        window.setDecorFitsSystemWindows(false)
-        window.decorView.windowInsetsController?.let {
-            it.hide(WindowInsets.Type.statusBars())
-            it.hide(WindowInsets.Type.navigationBars())
-            it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    private fun hideNavigation() = with(window.decorView) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            windowInsetsController?.hide(WindowInsets.Type.navigationBars())
+        } else {
+            @Suppress("DEPRECATION")
+            systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
         }
-    } else {
-        @Suppress("DEPRECATION")
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
     }
 }

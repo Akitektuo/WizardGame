@@ -1,4 +1,4 @@
-package akitektuo.wizardgame
+package akitektuo.wizardgame.game
 
 import android.graphics.Canvas
 import android.view.SurfaceHolder
@@ -7,7 +7,7 @@ import kotlin.time.DurationUnit
 
 class GameLoop(private val game: Game, private val surfaceHolder: SurfaceHolder) : Thread() {
     companion object {
-        private const val MAXIMUM_UPDATES_PER_SECOND = 60.0
+        const val MAXIMUM_UPDATES_PER_SECOND = 60f
         private const val UPDATES_PER_SECOND_PERIOD = 1E+3 / MAXIMUM_UPDATES_PER_SECOND
     }
 
