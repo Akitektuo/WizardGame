@@ -4,6 +4,8 @@ import akitektuo.wizardgame.game.element.Enemy
 import akitektuo.wizardgame.game.element.Joystick
 import akitektuo.wizardgame.game.element.Player
 import akitektuo.wizardgame.game.model.Boundary
+import akitektuo.wizardgame.game.model.Vector
+import akitektuo.wizardgame.game.model.toVector
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -15,7 +17,7 @@ import androidx.compose.ui.graphics.toArgb
 
 class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
     companion object {
-        private const val JOYSTICK_MARGIN = 250f
+        private const val JOYSTICK_MARGIN = 300f
     }
 
     private val gameLoop: GameLoop
@@ -37,11 +39,14 @@ class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
 
     private fun initializeComponents() {
         boundary = Boundary(0f, width.toFloat(), height.toFloat(), 0f)
-        player = Player(width / 2f, height / 2f, boundary)
-        joystick = Joystick(JOYSTICK_MARGIN, height - JOYSTICK_MARGIN, 100f, 50f) { x, y ->
-            player.setVelocity(x, y)
-        }
-        enemy = Enemy(0f, height / 2f, player)
+        player = Player(Vector(width / 2f, height / 2f), boundary)
+        joystick = Joystick(
+            Vector(JOYSTICK_MARGIN, height - JOYSTICK_MARGIN),
+            100f,
+            50f,
+            player::setVelocity
+        )
+        enemy = Enemy(Vector(0f, height / 2f), player)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -62,8 +67,8 @@ class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         when (event?.action) {
-            MotionEvent.ACTION_DOWN -> joystick.startTrackingIfPressed(event.x, event.y)
-            MotionEvent.ACTION_MOVE -> joystick.setInput(event.x, event.y)
+            MotionEvent.ACTION_DOWN -> joystick.startTrackingIfPressed(event.toVector())
+            MotionEvent.ACTION_MOVE -> joystick.setInput(event.toVector())
             MotionEvent.ACTION_UP -> joystick.release()
             else -> return super.onTouchEvent(event)
         }

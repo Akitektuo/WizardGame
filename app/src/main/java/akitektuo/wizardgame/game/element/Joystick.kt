@@ -1,28 +1,23 @@
 package akitektuo.wizardgame.game.element
 
+import akitektuo.wizardgame.game.model.Vector
 import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class Joystick(
-    private val positionX: Float,
-    private val positionY: Float,
+    private val position: Vector,
     private val areaRadius: Float,
     private val thumbRadius: Float,
-    private val onChange: ((actuatorX: Float, actuatorY: Float) -> Unit)? = null
+    private val onChange: ((actuator: Vector) -> Unit)? = null
 ) {
     private val areaPaint = Paint()
     private val thumbPaint = Paint()
 
-    private var thumbPositionX = positionX
-    private var thumbPositionY = positionY
+    private var thumbPosition = position.copy()
     private var isPressed = false
-    private var actuatorX = 0f
-    private var actuatorY = 0f
+    private var actuator = Vector()
 
     init {
         areaPaint.color = Color.Gray.toArgb()
@@ -33,24 +28,19 @@ class Joystick(
     }
 
     fun draw(canvas: Canvas) {
-        canvas.drawCircle(positionX, positionY, areaRadius, areaPaint)
-        canvas.drawCircle(thumbPositionX, thumbPositionY, thumbRadius, thumbPaint)
+        canvas.drawCircle(position.x, position.y, areaRadius, areaPaint)
+        canvas.drawCircle(thumbPosition.x, thumbPosition.y, thumbRadius, thumbPaint)
     }
 
     fun update() {
-        thumbPositionX = positionX + actuatorX * areaRadius
-        thumbPositionY = positionY + actuatorY * areaRadius
+        thumbPosition = position + actuator * areaRadius
     }
 
-    fun setInput(touchPositionX: Float, touchPositionY: Float) {
+    fun setInput(touchPosition: Vector) {
         if (!isPressed)
             return
 
-        val deltaX = touchPositionX - positionX
-        val deltaY = touchPositionY - positionY
-        val deltaDistance = sqrt(deltaX.pow(2) + deltaY.pow(2))
-        val referenceDistance = max(areaRadius, deltaDistance)
-        setActuator(deltaX / referenceDistance, deltaY / referenceDistance)
+        setActuator(position.getVelocityTowards(touchPosition))
     }
 
     fun release() {
@@ -58,19 +48,17 @@ class Joystick(
         resetActuator()
     }
 
-    fun startTrackingIfPressed(touchPositionX: Float, touchPositionY: Float): Boolean {
-        val areaCenterToTouchDistance = sqrt(
-            (positionX - touchPositionX).pow(2) + (positionY - touchPositionY).pow(2)
-        )
+    fun startTrackingIfPressed(touchPosition: Vector): Boolean {
+        val areaCenterToTouchDistance = position.getLinearDistanceTo(touchPosition)
+
         isPressed = areaCenterToTouchDistance < areaRadius
         return isPressed
     }
 
-    private fun resetActuator() = setActuator(0f, 0f)
+    private fun resetActuator() = setActuator(Vector())
 
-    private fun setActuator(x: Float, y: Float) {
-        actuatorX = x
-        actuatorY = y
-        onChange?.invoke(x, y)
+    private fun setActuator(vector: Vector) {
+        actuator = vector
+        onChange?.invoke(actuator)
     }
 }
