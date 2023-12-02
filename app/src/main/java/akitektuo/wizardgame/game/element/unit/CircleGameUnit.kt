@@ -13,4 +13,9 @@ open class CircleGameUnit(
     override fun draw(canvas: Canvas) {
         canvas.drawCircle(position.x, position.y, radius, paint)
     }
+
+    fun getDistanceToCollision(otherCircle: CircleGameUnit) = radius + otherCircle.radius
+
+    fun isColliding(otherCircle: CircleGameUnit) =
+        getDistanceToObject(otherCircle) < getDistanceToCollision(otherCircle)
 }

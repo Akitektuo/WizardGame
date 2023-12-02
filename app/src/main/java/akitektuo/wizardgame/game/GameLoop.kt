@@ -16,6 +16,8 @@ class GameLoop(private val game: Game, private val surfaceHolder: SurfaceHolder)
     var averageUpdatesPerSecond: Double = 0.0
 
     fun startLoop() {
+        if (isRunning)
+            return
         isRunning = true
         start()
     }
@@ -38,7 +40,9 @@ class GameLoop(private val game: Game, private val surfaceHolder: SurfaceHolder)
                     game.update()
                     updateCount++
 
-                    game.draw(canvas)
+                    if (canvas != null) {
+                        game.draw(canvas)
+                    }
                 }
             } catch (exception: IllegalArgumentException) {
                 exception.printStackTrace()

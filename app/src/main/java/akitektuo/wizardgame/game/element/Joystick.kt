@@ -16,7 +16,10 @@ class Joystick(
     private val thumbPaint = Paint()
 
     private var thumbPosition = position.copy()
-    private var isPressed = false
+    var isPressed = false
+        private set
+    var actionId: Int = 0
+        private set
     private var actuator = Vector()
 
     init {
@@ -40,18 +43,21 @@ class Joystick(
         if (!isPressed)
             return
 
-        setActuator(position.getVelocityTowards(touchPosition))
+        setActuator(position.getVelocityTowards(touchPosition, areaRadius))
     }
 
     fun release() {
         isPressed = false
+        actionId = 0
         resetActuator()
     }
 
-    fun startTrackingIfPressed(touchPosition: Vector): Boolean {
+    fun startTrackingIfPressed(actionId: Int, touchPosition: Vector): Boolean {
         val areaCenterToTouchDistance = position.getLinearDistanceTo(touchPosition)
 
         isPressed = areaCenterToTouchDistance < areaRadius
+        if (isPressed)
+            this.actionId = actionId
         return isPressed
     }
 

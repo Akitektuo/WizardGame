@@ -1,10 +1,7 @@
 package akitektuo.wizardgame.game
 
 import akitektuo.wizardgame.game.element.Enemy
-import akitektuo.wizardgame.game.element.Joystick
-import akitektuo.wizardgame.game.element.Player
-import akitektuo.wizardgame.game.model.Boundary
-import akitektuo.wizardgame.game.model.Vector
+import akitektuo.wizardgame.game.element.Spell
 import akitektuo.wizardgame.game.model.toVector
 import android.content.Context
 import android.graphics.Canvas
@@ -15,16 +12,13 @@ import android.view.SurfaceView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 
-class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
+class Game(context: Context) : SurfaceView(context),
+    SurfaceHolder.Callback {
     companion object {
-        private const val JOYSTICK_MARGIN = 300f
+        const val JOYSTICK_MARGIN = 300f
     }
 
     private val gameLoop: GameLoop
-    private lateinit var boundary: Boundary
-    private lateinit var player: Player
-    private lateinit var joystick: Joystick
-    private lateinit var enemy: Enemy
 
     init {
         holder.addCallback(this)
@@ -33,20 +27,8 @@ class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        initializeComponents()
+        state.initialize(width.toFloat(), height.toFloat())
         gameLoop.startLoop()
-    }
-
-    private fun initializeComponents() {
-        boundary = Boundary(0f, width.toFloat(), height.toFloat(), 0f)
-        player = Player(Vector(width / 2f, height / 2f), boundary)
-        joystick = Joystick(
-            Vector(JOYSTICK_MARGIN, height - JOYSTICK_MARGIN),
-            100f,
-            50f,
-            player::setVelocity
-        )
-        enemy = Enemy(Vector(0f, height / 2f), player)
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -60,20 +42,63 @@ class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
         canvas.drawUpdatesPerSecond()
         canvas.drawFramesPerSecond()
 
-        player.draw(canvas)
-        joystick.draw(canvas)
-        enemy.draw(canvas)
+        with(state) {
+            player.draw(canvas)
+            joystick.draw(canvas)
+            enemies.forEach { it.draw(canvas) }
+            spells.forEach { it.draw(canvas) }
+        }
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        when (event?.action) {
-            MotionEvent.ACTION_DOWN -> joystick.startTrackingIfPressed(event.toVector())
+    override fun onTouchEvent(event: MotionEvent?): Boolean = with(state) {
+        when (event?.actionMasked) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                if (joystick.isPressed) {
+                    Spell.spellsToCast++
+                } else if (!joystick.startTrackingIfPressed(
+                        event.getActionId(),
+                        event.toVector()
+                    )
+                ) {
+                    Spell.spellsToCast++
+                }
+            }
+
             MotionEvent.ACTION_MOVE -> joystick.setInput(event.toVector())
-            MotionEvent.ACTION_UP -> joystick.release()
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_POINTER_UP -> {
+                if (joystick.actionId == event.getActionId()) {
+                    joystick.release()
+                }
+            }
+
             else -> return super.onTouchEvent(event)
         }
 
         return true
+    }
+
+    fun update() = with(state) {
+        player.update()
+        joystick.update()
+
+        if (Enemy.isReadyToSpawn()) {
+            enemies.add(Enemy(boundary, player))
+        }
+        while (Spell.spellsToCast > 0) {
+            spells.add(Spell(boundary, player))
+            Spell.spellsToCast--
+        }
+
+        enemies.forEach(Enemy::update)
+        enemies.removeIf { enemy ->
+            enemy.update()
+            spells.removeIf { spell ->
+                spell.update()
+                spell.isColliding(enemy)
+            } || enemy.isCollidingWithPlayer()
+        }
     }
 
     private fun Canvas.drawUpdatesPerSecond() =
@@ -88,9 +113,5 @@ class Game(context: Context) : SurfaceView(context), SurfaceHolder.Callback {
             textSize = 50f
         })
 
-    fun update() {
-        player.update()
-        joystick.update()
-        enemy.update()
-    }
+    private fun MotionEvent.getActionId() = getPointerId(actionIndex)
 }

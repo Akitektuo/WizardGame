@@ -6,6 +6,8 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 data class Vector(var x: Float = 0f, var y: Float = 0f) {
+    val isOrigin = x == 0f && y == 0f
+
     fun getLinearDistanceTo(otherVector: Vector) =
         sqrt((otherVector.x - x).pow(2) + (otherVector.y - y).pow(2))
 
