@@ -1,4 +1,4 @@
-package akitektuo.wizardgame.game.element
+package akitektuo.wizardgame.game.hud
 
 import akitektuo.wizardgame.game.model.Vector
 import android.graphics.Canvas

@@ -78,4 +78,12 @@ class GameLoop(private val game: Game, private val surfaceHolder: SurfaceHolder)
             }
         }
     }
+
+    fun stopLoop() {
+        isRunning = false
+        try {
+            join()
+        } catch (_: InterruptedException) {
+        }
+    }
 }

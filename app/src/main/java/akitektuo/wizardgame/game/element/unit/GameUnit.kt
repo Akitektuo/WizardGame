@@ -1,9 +1,8 @@
 package akitektuo.wizardgame.game.element.unit
 
 import akitektuo.wizardgame.game.GameLoop
-import akitektuo.wizardgame.game.element.GameObject
+import akitektuo.wizardgame.game.definition.GameObject
 import akitektuo.wizardgame.game.model.Vector
-import android.graphics.Canvas
 import android.graphics.Paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb

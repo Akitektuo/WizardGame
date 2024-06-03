@@ -8,11 +8,19 @@ import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 
 class MainActivity : ComponentActivity() {
+    private lateinit var game: Game
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideNavigation()
 
-        setContentView(Game(this))
+        game = Game(this)
+        setContentView(game)
+    }
+
+    override fun onPause() {
+        game.pause()
+        super.onPause()
     }
 
     private fun hideNavigation() = with(window.decorView) {

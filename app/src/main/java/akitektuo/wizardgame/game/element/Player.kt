@@ -1,6 +1,7 @@
 package akitektuo.wizardgame.game.element
 
 import akitektuo.wizardgame.game.element.unit.CircleGameUnit
+import akitektuo.wizardgame.game.hud.HealthBar
 import akitektuo.wizardgame.game.model.Boundary
 import akitektuo.wizardgame.game.model.Vector
 import android.graphics.Canvas
@@ -22,6 +23,7 @@ class Player(
             field = max(0, value)
         }
 
+    val isDead get() = healthPoints <= 0
 
     override fun update() {
         super.update()

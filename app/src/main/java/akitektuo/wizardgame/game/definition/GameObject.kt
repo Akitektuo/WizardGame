@@ -1,4 +1,4 @@
-package akitektuo.wizardgame.game.element
+package akitektuo.wizardgame.game.definition
 
 import android.graphics.Canvas
 

@@ -1,7 +1,8 @@
 package akitektuo.wizardgame.game
 
 import akitektuo.wizardgame.game.element.Enemy
-import akitektuo.wizardgame.game.element.Joystick
+import akitektuo.wizardgame.game.hud.GameOver
+import akitektuo.wizardgame.game.hud.Joystick
 import akitektuo.wizardgame.game.element.Player
 import akitektuo.wizardgame.game.element.Spell
 import akitektuo.wizardgame.game.model.Boundary
@@ -14,10 +15,13 @@ class GameState {
     lateinit var joystick: Joystick
     val enemies = mutableListOf<Enemy>()
     val spells = mutableListOf<Spell>()
+    lateinit var gameOver: GameOver
 
     fun initialize(width: Float, height: Float) {
-        if (isInitialized)
+        if (isInitialized) {
+            updateScreenSize(width, height)
             return
+        }
 
         boundary = Boundary(0f, width, height, 0f)
         player = Player(Vector(width / 2, height / 2), boundary)
@@ -27,8 +31,14 @@ class GameState {
             50f,
             player::setVelocity
         )
+        gameOver = GameOver(width, height)
 
         isInitialized = true
+    }
+
+    fun updateScreenSize(width: Float, height: Float) {
+        boundary.updateScreenSize(width, height)
+        gameOver.updateScreenSize(width, height)
     }
 }
 

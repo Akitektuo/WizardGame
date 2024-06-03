@@ -2,15 +2,13 @@ package akitektuo.wizardgame.game
 
 import akitektuo.wizardgame.game.element.Enemy
 import akitektuo.wizardgame.game.element.Spell
+import akitektuo.wizardgame.game.hud.PerformanceMetrics
 import akitektuo.wizardgame.game.model.toVector
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 
 class Game(context: Context) : SurfaceView(context),
     SurfaceHolder.Callback {
@@ -18,15 +16,22 @@ class Game(context: Context) : SurfaceView(context),
         const val JOYSTICK_MARGIN = 300f
     }
 
-    private val gameLoop: GameLoop
+    private var gameLoop: GameLoop
+    private var performanceMetrics: PerformanceMetrics
 
     init {
         holder.addCallback(this)
         gameLoop = GameLoop(this, holder)
+        performanceMetrics = PerformanceMetrics(gameLoop)
         isFocusable = true
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
+        if (gameLoop.state == Thread.State.TERMINATED) {
+            gameLoop = GameLoop(this, holder)
+            performanceMetrics = PerformanceMetrics(gameLoop)
+        }
+
         state.initialize(width.toFloat(), height.toFloat())
         gameLoop.startLoop()
     }
@@ -39,14 +44,16 @@ class Game(context: Context) : SurfaceView(context),
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        canvas.drawUpdatesPerSecond()
-        canvas.drawFramesPerSecond()
+        performanceMetrics.draw(canvas)
 
         with(state) {
             player.draw(canvas)
             joystick.draw(canvas)
             enemies.forEach { it.draw(canvas) }
             spells.forEach { it.draw(canvas) }
+
+            if (player.isDead)
+                gameOver.draw(canvas)
         }
     }
 
@@ -80,6 +87,8 @@ class Game(context: Context) : SurfaceView(context),
     }
 
     fun update() = with(state) {
+        if (player.isDead) return@with
+
         player.update()
         joystick.update()
 
@@ -92,6 +101,7 @@ class Game(context: Context) : SurfaceView(context),
         }
 
         enemies.forEach(Enemy::update)
+
         enemies.removeIf { enemy ->
             enemy.update()
             spells.removeIf { spell ->
@@ -101,17 +111,9 @@ class Game(context: Context) : SurfaceView(context),
         }
     }
 
-    private fun Canvas.drawUpdatesPerSecond() =
-        drawText("UPS: ${gameLoop.averageUpdatesPerSecond}", 100f, 100f, Paint().apply {
-            color = Color.Magenta.toArgb()
-            textSize = 50f
-        })
-
-    private fun Canvas.drawFramesPerSecond() =
-        drawText("FPS: ${gameLoop.averageFramesPerSecond}", 100f, 200f, Paint().apply {
-            color = Color.Magenta.toArgb()
-            textSize = 50f
-        })
+    fun pause() {
+        gameLoop.stopLoop()
+    }
 
     private fun MotionEvent.getActionId() = getPointerId(actionIndex)
 }

@@ -1,11 +1,12 @@
-package akitektuo.wizardgame.game.element
+package akitektuo.wizardgame.game.hud
 
+import akitektuo.wizardgame.game.definition.GameObject
+import akitektuo.wizardgame.game.element.Player
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.res.colorResource
 
 class HealthBar(private val player: Player) : GameObject {
     companion object {
